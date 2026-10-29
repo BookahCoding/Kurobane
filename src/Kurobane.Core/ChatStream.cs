@@ -113,10 +113,12 @@ public sealed class ChatStream : IAsyncDisposable
     }
 
     private static double? Num(JsonNode? n)
-        => n is not null && n.GetValueKind() == System.Text.Json.JsonValueKind.Number ? n.GetValue<double>() : null;
+        => n is not null && n.GetValueKind() == System.Text.Json.JsonValueKind.Number
+            ? System.Text.Json.JsonSerializer.Deserialize<double>(n.ToJsonString()) : null;
 
     private static long? Tokens(JsonNode? n)
-        => n is not null && n.GetValueKind() == System.Text.Json.JsonValueKind.Number ? (long)n.GetValue<double>() : null;
+        => n is not null && n.GetValueKind() == System.Text.Json.JsonValueKind.Number
+            ? System.Text.Json.JsonSerializer.Deserialize<long>(n.ToJsonString()) : null;
 
     public static WsEvent Classify(JsonObject frame)
     {
@@ -134,7 +136,7 @@ public sealed class ChatStream : IAsyncDisposable
             "tool_result" => new WsEvent.ToolResult(Str("id") ?? "", Str("name") ?? "", frame["output"]?.ToJsonString() ?? ""),
             "approval_request" => new WsEvent.ApprovalRequest(
                 Str("request_id") ?? "", Str("tool") ?? "", Str("arguments_summary") ?? "",
-                frame["timeout_secs"] is { } ts && ts.GetValueKind() == System.Text.Json.JsonValueKind.Number ? (int)ts.GetValue<double>() : 0),
+                frame["timeout_secs"] is { } ts && ts.GetValueKind() == System.Text.Json.JsonValueKind.Number ? System.Text.Json.JsonSerializer.Deserialize<int>(ts.ToJsonString()) : 0),
             "done" => new WsEvent.Done(
                 Str("full_response") ?? "", Str("model"), Str("provider"),
                 Num(frame["cost_usd"]), Tokens(frame["tokens_used"])),
