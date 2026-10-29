@@ -11,7 +11,7 @@ namespace Kurobane.Core;
 /// </summary>
 public static class UpdateTrust
 {
-    public const string PublisherPublicKeySpkiBase64 = "";
+    public const string PublisherPublicKeySpkiBase64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuQEJdnVsle60ABLI/1+cIFoFOqwpyVbKJPkWnBybhUPqz5hAyU13x4/sXMQp05Xf6g12ai4dL2d/GdPbtMUxEg==";
 }
 
 public enum SignatureResult { Ok, NoTrustedKey, Malformed, Mismatch }

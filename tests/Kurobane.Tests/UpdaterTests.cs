@@ -372,7 +372,7 @@ public sealed class UpdaterTests : IDisposable
         Assert.False(new ReleaseSignatureVerifier(null).IsConfigured);
         Assert.False(new ReleaseSignatureVerifier("").IsConfigured);
         Assert.False(new ReleaseSignatureVerifier("garbage").IsConfigured);
-        Assert.False(new ReleaseSignatureVerifier(UpdateTrust.PublisherPublicKeySpkiBase64).IsConfigured);  // empty until the owner runs keygen and pastes the public key
+        Assert.True(new ReleaseSignatureVerifier(UpdateTrust.PublisherPublicKeySpkiBase64).IsConfigured);  // the embedded publisher key must be a usable P-256 key
         using var p384 = ECDsa.Create(ECCurve.NamedCurves.nistP384);
         Assert.False(new ReleaseSignatureVerifier(Spki(p384)).IsConfigured);
         var zip = WriteFile("n.zip", MakeZip(("Kurobane.exe", "x")));

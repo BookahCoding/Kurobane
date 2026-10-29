@@ -1,10 +1,10 @@
 # GitHub Releases updater
 
-**Status:** implemented and fixture-tested (synthetic keys/zips/handlers in `tests/Kurobane.Tests/UpdaterTests.cs`; no
-real release and no real publisher key yet). The publisher public key is **not embedded yet**:
-`UpdateTrust.PublisherPublicKeySpkiBase64` in `src/Kurobane.Core/Updates/ReleaseSigning.cs` is empty until the owner
-runs `keygen` and pastes the public key — until then the app still *checks* for updates and shows the release page,
-but **Download and verify** is disabled (fail closed). The app version starts at **0.5.0** (`Directory.Build.props`).
+**Status:** implemented and fixture-tested (synthetic keys/zips/handlers in `tests/Kurobane.Tests/UpdaterTests.cs`).
+The publisher public key is embedded in `UpdateTrust.PublisherPublicKeySpkiBase64`
+(`src/Kurobane.Core/Updates/ReleaseSigning.cs`); the matching private key is kept offline by the owner and lives in the
+repository secret `KUROBANE_RELEASE_KEY_PEM`. If that constant were ever empty or unusable, **Download and verify**
+would be disabled (fail closed). The app version starts at **0.5.0** (`Directory.Build.props`).
 
 ## What the user sees (Settings → Updates)
 
