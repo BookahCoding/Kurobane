@@ -48,11 +48,11 @@ public sealed class ChatStream : IAsyncDisposable
     public static Uri BuildWsUri(Uri baseUri, string agentAlias, string sessionId, string? name)
     {
         var scheme = baseUri.Scheme == "https" || baseUri.Scheme == "wss" ? "wss" : "ws";
-        var builder = new UriBuilder(baseUri) { Scheme = scheme, Path = "/ws/chat" };
+        var builder = new UriBuilder(baseUri) { Scheme = scheme, Path = "/ws/chat", Query = "" };
         var query = $"agent_alias={Uri.EscapeDataString(agentAlias)}&session_id={Uri.EscapeDataString(sessionId)}";
         if (!string.IsNullOrWhiteSpace(name)) query += $"&name={Uri.EscapeDataString(name)}";
-        builder.Query = query;
-        return builder.Uri;
+        // UriBuilder.Query unescapes; assign via the string form so %20 survives.
+        return new Uri(builder.Uri.GetLeftPart(UriPartial.Authority) + "/ws/chat?" + query);
     }
 
     public static ChatStream Create(Uri baseUri, string? token, string agentAlias, string sessionId, string? name)
@@ -129,7 +129,8 @@ public sealed class ChatStream : IAsyncDisposable
                 frame["timeout_secs"]?.GetValue<int>() ?? 0),
             "done" => new WsEvent.Done(
                 Str("full_response") ?? "", Str("model"), Str("provider"),
-                frame["cost_usd"]?.GetValue<double>(), frame["tokens_used"]?.GetValue<long>()),
+                frame["cost_usd"] is { } cost && cost.TryGetValue<double>(out var c) ? c : null,
+                frame["tokens_used"] is { } tok && tok.TryGetValue<long>(out var t) ? t : null),
             "aborted" => new WsEvent.Aborted(),
             "agent_start" => new WsEvent.AgentStart(Str("model_provider") ?? Str("provider"), Str("model")),
             "agent_end" => new WsEvent.AgentEnd(Str("model_provider") ?? Str("provider"), Str("model")),

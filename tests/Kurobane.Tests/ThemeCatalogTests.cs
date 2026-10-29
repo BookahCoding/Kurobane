@@ -28,7 +28,9 @@ public class ThemeCatalogTests
 
     [Theory]
     [InlineData("light", true, true)]
-    [InlineData("dark", false, true)]
+    [InlineData("light", false, true)]
+    [InlineData("dark", true, false)]
+    [InlineData("dark", false, false)]
     [InlineData("system", true, false)]  // system + dark OS => dark
     [InlineData("system", false, true)]   // system + light OS => light
     public void Appearance_resolves_against_the_os(string mode, bool osDark, bool expectLight)

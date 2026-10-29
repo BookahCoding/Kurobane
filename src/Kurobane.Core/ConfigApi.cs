@@ -29,6 +29,9 @@ public static class ConfigApi
 
     /// <summary>True for the gateway's masked-secret placeholder, which must never be written back.</summary>
     public static bool IsMaskedSecretValue(JsonNode? value)
-        => value is not null && value.GetValueKind() == System.Text.Json.JsonValueKind.String
-            && value.GetValue<string>().Contains("****", StringComparison.Ordinal);
+    {
+        if (value is null || value.GetValueKind() != System.Text.Json.JsonValueKind.String) return false;
+        var s = value.GetValue<string>();
+        return s.Contains("****", StringComparison.Ordinal) || s.Contains("***", StringComparison.Ordinal);
+    }
 }
