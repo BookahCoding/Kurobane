@@ -153,7 +153,7 @@ public partial class MainWindow : Window
                         break;
                     case WsEvent.Done d:
                         RunStatus.Text = $"done · {d.Model} · {d.TokensUsed} tokens" + (d.CostUsd is { } c ? $" · ${c:0.####}" : "");
-                        if (reply.Children.Count == 0 && d.FullResponse.Length > 0) AppendToLast(reply, d.FullResponse);
+                        if (reply.Blocks.Count == 0 && d.FullResponse.Length > 0) AppendToLast(reply, d.FullResponse);
                         break;
                     case WsEvent.Aborted: RunStatus.Text = "aborted"; break;
                     case WsEvent.Error err: AppendMessage("error", err.Message); RunStatus.Text = err.Message; break;
@@ -189,7 +189,7 @@ public partial class MainWindow : Window
         });
     }
 
-    private StackPanel AppendMessage(string role, string text)
+    private FlowDocument AppendMessage(string role, string text)
     {
         var header = new TextBlock
         {
@@ -198,30 +198,32 @@ public partial class MainWindow : Window
             Foreground = role switch { "user" => (Brush)FindResource("Brush.Text"), "assistant" => (Brush)FindResource("Brush.Accent"), "error" => (Brush)FindResource("Brush.Danger"), _ => (Brush)FindResource("Brush.TextMuted") },
             Margin = new Thickness(0, 8, 0, 0),
         };
-        var body = new StackPanel();
+        var doc = new FlowDocument();
         if (text.Length > 0)
             foreach (var block in MarkdownLite.Render(text))
-                if (block is Paragraph para) body.Children.Add(para);
+                doc.Blocks.Add(block);
+        var viewer = new FlowDocumentScrollViewer
+        {
+            Document = doc,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            IsToolBarVisible = false,
+            Focusable = false,
+        };
         var panel = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
         panel.Children.Add(header);
-        panel.Children.Add(body);
+        panel.Children.Add(viewer);
         MessagesPanel.Children.Add(panel);
         ChatScroll.ScrollToEnd();
-        return body;
+        return doc;
     }
 
-    private void AppendToLast(StackPanel target, string delta)
+    private void AppendToLast(FlowDocument target, string delta)
     {
-        if (target.Children.Count > 0 && target.Children[^1] is Paragraph last)
-        {
+        if (target.Blocks.LastBlock is Paragraph last)
             last.Inlines.Add(new Run(delta));
-        }
         else
-        {
-            var para = new Paragraph();
-            para.Inlines.Add(new Run(delta));
-            target.Children.Add(para);
-        }
+            target.Blocks.Add(new Paragraph(new Run(delta)));
         ChatScroll.ScrollToEnd();
     }
 }
