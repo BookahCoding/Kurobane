@@ -1,0 +1,80 @@
+<Window x:Class="Kurobane.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Kurobane — ZeroClaw client" Height="720" Width="1080"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="KUROBANE" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock x:Name="ServerLabel" Grid.Row="1" Foreground="{DynamicResource MutedTextBrush}" Margin="0,2,0,8" TextWrapping="Wrap"/>
+                <Button x:Name="NewChatButton" Grid.Row="2" Content="+ New chat" Style="{StaticResource AccentButton}" Click="OnNewChat" Margin="0,0,0,8"/>
+                <ListBox x:Name="SessionList" Grid.Row="3" SelectionChanged="OnSessionSelected" MouseDoubleClick="OnSessionDoubleClick">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                                <TextBlock Foreground="{DynamicResource MutedTextBrush}" FontSize="11">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}{0} messages · {1:g}">
+                                            <Binding Path="MessageCount"/>
+                                            <Binding Path="LastActivity"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <StackPanel Grid.Row="4" Margin="0,8,0,0">
+                    <Button x:Name="RefreshButton" Content="Refresh sessions" Click="OnRefresh" Margin="0,0,0,4"/>
+                    <Button x:Name="RenameButton" Content="Rename session" Click="OnRename" Margin="0,0,0,4"/>
+                    <Button x:Name="DeleteButton" Content="Delete session" Click="OnDelete" Margin="0,0,0,4"/>
+                    <Button x:Name="AbortButton" Content="Abort running turn" Click="OnAbort" Margin="0,0,0,4"/>
+                    <Button x:Name="ConfigButton" Content="Gateway config…" Click="OnOpenConfig" Margin="0,0,0,4"/>
+                    <Button x:Name="SettingsButton" Content="Settings…" Click="OnOpenSettings"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Chat -->
+        <Grid Grid.Column="1" Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="ChatTitle" Text="No session selected" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6">
+                <ScrollViewer x:Name="ChatScroll" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="MessagesPanel" Margin="10"/>
+                </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="RunStatus" Grid.Row="2" Foreground="{DynamicResource MutedTextBrush}" Margin="0,4,0,4" Text=""/>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="Composer" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="40" MaxHeight="160"
+                         VerticalScrollBarVisibility="Auto" KeyDown="OnComposerKeyDown"/>
+                <Button x:Name="SendButton" Grid.Column="1" Content="Send" Style="{StaticResource AccentButton}"
+                        Click="OnSend" Margin="8,0,0,0" Width="90" VerticalAlignment="Bottom"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

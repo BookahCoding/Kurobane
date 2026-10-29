@@ -1,0 +1,22 @@
+# build / caches
+bin/
+obj/
+artifacts/
+.vs/
+*.user
+TestResults/
+# secrets / local config
+.env
+.env.*
+*.local.json
+kurobane.local.*
+*.pfx
+*.snk
+*.key
+*.pem
+# logs and run artefacts
+*.log
+logs/
+outputs/
+run/
+*.dmp
