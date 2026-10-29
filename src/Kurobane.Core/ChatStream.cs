@@ -51,8 +51,10 @@ public sealed class ChatStream : IAsyncDisposable
         var builder = new UriBuilder(baseUri) { Scheme = scheme, Path = "/ws/chat", Query = "" };
         var query = $"agent_alias={Uri.EscapeDataString(agentAlias)}&session_id={Uri.EscapeDataString(sessionId)}";
         if (!string.IsNullOrWhiteSpace(name)) query += $"&name={Uri.EscapeDataString(name)}";
-        // UriBuilder.Query unescapes; assign via the string form so %20 survives.
-        return new Uri(builder.Uri.GetLeftPart(UriPartial.Authority) + "/ws/chat?" + query);
+        // new Uri(string) canonicalizes but keeps %20 escaped in the query; set Query via builder with
+        // a placeholder then string-replace to avoid UriBuilder unescaping it.
+        builder.Query = "q=1";
+        return new Uri(builder.Uri.AbsoluteUri.Replace("q=1", query));
     }
 
     public static ChatStream Create(Uri baseUri, string? token, string agentAlias, string sessionId, string? name)
