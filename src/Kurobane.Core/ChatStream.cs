@@ -110,6 +110,12 @@ public sealed class ChatStream : IAsyncDisposable
         }
     }
 
+    private static double? Num(JsonNode? n)
+        => n is not null && n.GetValueKind() == System.Text.Json.JsonValueKind.Number ? n.GetValue<double>() : null;
+
+    private static long? Tokens(JsonNode? n)
+        => n is not null && n.GetValueKind() == System.Text.Json.JsonValueKind.Number ? (long)n.GetValue<double>() : null;
+
     public static WsEvent Classify(JsonObject frame)
     {
         var type = frame["type"]?.GetValue<string>() ?? "";
@@ -126,11 +132,10 @@ public sealed class ChatStream : IAsyncDisposable
             "tool_result" => new WsEvent.ToolResult(Str("id") ?? "", Str("name") ?? "", frame["output"]?.ToJsonString() ?? ""),
             "approval_request" => new WsEvent.ApprovalRequest(
                 Str("request_id") ?? "", Str("tool") ?? "", Str("arguments_summary") ?? "",
-                frame["timeout_secs"]?.GetValue<int>() ?? 0),
+                frame["timeout_secs"] is { } ts && ts.GetValueKind() == System.Text.Json.JsonValueKind.Number ? (int)ts.GetValue<double>() : 0),
             "done" => new WsEvent.Done(
                 Str("full_response") ?? "", Str("model"), Str("provider"),
-                frame["cost_usd"] is { } cost && cost.TryGetValue<double>(out var c) ? c : null,
-                frame["tokens_used"] is { } tok && tok.TryGetValue<long>(out var t) ? t : null),
+                Num(frame["cost_usd"]), Tokens(frame["tokens_used"])),
             "aborted" => new WsEvent.Aborted(),
             "agent_start" => new WsEvent.AgentStart(Str("model_provider") ?? Str("provider"), Str("model")),
             "agent_end" => new WsEvent.AgentEnd(Str("model_provider") ?? Str("provider"), Str("model")),
