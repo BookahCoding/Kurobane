@@ -57,7 +57,7 @@ public sealed class ZeroClawClient : IDisposable
         CancellationToken ct, HttpStatusCode[]? accept = null)
     {
         using var req = Request(method, relativePath, body);
-        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseContent, ct).ConfigureAwait(false);
+        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
         var text = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
         if (!resp.IsSuccessStatusCode && (accept is null || !accept.Contains(resp.StatusCode)))
             throw new ZeroClawApiException(resp.StatusCode, text);
