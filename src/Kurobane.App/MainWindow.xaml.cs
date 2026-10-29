@@ -130,8 +130,7 @@ public partial class MainWindow : Window
 
         Composer.Clear();
         AppendMessage("user", text);
-        AppendMessage("assistant", "");
-        var reply = (StackPanel)MessagesPanel.Children[^1].Children[^1];
+        var reply = AppendMessage("assistant", "");
         SendButton.IsEnabled = false;
         _runCts = new CancellationTokenSource();
         try
@@ -144,7 +143,7 @@ public partial class MainWindow : Window
             {
                 switch (evt)
                 {
-                    case WsEvent.Chunk c: AppendToLast(reply, c.Content); break;
+                    case WsEvent.Chunk chunk: AppendToLast(reply, chunk.Content); break;
                     case WsEvent.Thinking t: RunStatus.Text = "thinking…"; break;
                     case WsEvent.ToolCall tc: AppendMessage("tool", $"🔧 {tc.Name} {tc.Args}"); break;
                     case WsEvent.ToolResult tr: RunStatus.Text = $"tool {tr.Name} done"; break;
@@ -190,7 +189,7 @@ public partial class MainWindow : Window
         });
     }
 
-    private void AppendMessage(string role, string text)
+    private StackPanel AppendMessage(string role, string text)
     {
         var header = new TextBlock
         {
@@ -200,26 +199,28 @@ public partial class MainWindow : Window
             Margin = new Thickness(0, 8, 0, 0),
         };
         var body = new StackPanel();
-        foreach (var block in MarkdownLite.Render(text))
-            body.Children.Add(block);
+        if (text.Length > 0)
+            foreach (var block in MarkdownLite.Render(text))
+                if (block is Paragraph para) body.Children.Add(para);
         var panel = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
         panel.Children.Add(header);
         panel.Children.Add(body);
         MessagesPanel.Children.Add(panel);
         ChatScroll.ScrollToEnd();
+        return body;
     }
 
     private void AppendToLast(StackPanel target, string delta)
     {
-        if (target.Children.Count > 0 && target.Children[^1] is Paragraph p)
+        if (target.Children.Count > 0 && target.Children[^1] is Paragraph last)
         {
-            p.Inlines.Add(new Run(delta));
+            last.Inlines.Add(new Run(delta));
         }
         else
         {
-            var p = new Paragraph();
-            p.Inlines.Add(new Run(delta));
-            target.Children.Add(p);
+            var para = new Paragraph();
+            para.Inlines.Add(new Run(delta));
+            target.Children.Add(para);
         }
         ChatScroll.ScrollToEnd();
     }

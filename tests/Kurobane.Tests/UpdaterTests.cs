@@ -19,7 +19,7 @@ public sealed class UpdaterTests : IDisposable
     private static readonly ReleaseVersion V2 = new(0, 2, 0);
     private readonly string _root = Path.Combine(Path.GetTempPath(), "kuro-upd-" + Guid.NewGuid().ToString("N"));
 
-    public Checkpoint15UpdaterTests() => Directory.CreateDirectory(_root);
+    public UpdaterTests() => Directory.CreateDirectory(_root);
     public void Dispose() { try { Directory.Delete(_root, true); } catch { /* best effort */ } }
 
     // ---- helpers -------------------------------------------------------------------------------

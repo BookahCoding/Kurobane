@@ -1,3 +1,5 @@
+using System.IO;
+using System.Net.Http;
 using System.Windows;
 using Kurobane.Core;
 
@@ -7,7 +9,7 @@ public partial class App : Application
 {
     public static AppSettings Settings { get; private set; } = new();
     public static DpapiSecretStore Secrets { get; private set; } = new(
-        System.IO.Path.Combine(AppSettings.SettingsDirectory, "secrets"));
+        Path.Combine(AppSettings.SettingsDirectory, "secrets"));
 
     /// <summary>Downloaded + verified update packages. Local (not roaming) data, under %LOCALAPPDATA%\Kurobane\updates.</summary>
     public static string UpdateWorkDir { get; } =
@@ -43,7 +45,7 @@ public partial class App : Application
             var checker = new UpdateChecker(new HttpClientHandler(), UpdateRepo, UpdateLauncher.CurrentVersion);
             var release = await StartupUpdateCheck.FindNewerAsync(checker.CheckAsync, CancellationToken.None);
             if (release is not null && Current.MainWindow is MainWindow mw)
-                mw.Dispatcher.BeginInvoke(() => mw.ShowUpdateBanner(release));
+                _ = mw.Dispatcher.BeginInvoke(() => mw.ShowUpdateBanner(release));
         }
         catch { /* silent at start-up by design */ }
     }

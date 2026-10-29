@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
@@ -81,7 +82,7 @@ public static partial class MarkdownLite
             else if (g["link"].Success)
             {
                 var link = new Hyperlink(new Run(g["text"].Value)) { NavigateUri = new Uri(g["url"].Value) };
-                link.RequestNavigate += (_, e) => { if (Uri.TryCreate(e.Uri.AbsoluteUri, UriKind.Absolute, out _)) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); };
+                link.RequestNavigate += (_, e) => { if (Uri.TryCreate(e.Uri.AbsoluteUri, UriKind.Absolute, out var ignored) && ignored is not null) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); };
                 inlines.Add(link);
             }
             pos = m.Index + m.Length;
