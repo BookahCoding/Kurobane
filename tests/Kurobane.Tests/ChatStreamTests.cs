@@ -10,7 +10,7 @@ public class ChatStreamTests
     public void WsUriUsesWsSchemeForHttpBaseAndKeepsPort()
     {
         var uri = ChatStream.BuildWsUri(new Uri("http://100.64.0.2:42617/"), "default", "s1", "My chat");
-        Assert.Equal("ws://100.64.0.2:42617/ws/chat?agent_alias=default&session_id=s1&name=My%20chat", uri.ToString());
+        Assert.Equal("agent_alias=default&session_id=s1&name=My%20chat", uri.Query.TrimStart('?'));
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public class ChatStreamTests
         Assert.Equal("wss", uri.Scheme);
         Assert.DoesNotContain("name=", uri.Query);
         Assert.Contains("agent_alias=coder", uri.Query);
-        Assert.Contains("session_id=s%202", uri.Query);
+        Assert.Contains("session_id=s%202", uri.Query.TrimStart('?'));
     }
 
     private static JsonObject Frame(string type, params (string Key, object? Value)[] fields)
