@@ -1,4 +1,5 @@
 using System.Windows;
+using Kurobane.Core;
 
 namespace Kurobane.App;
 
@@ -8,37 +9,42 @@ public partial class App : Application
     public static DpapiSecretStore Secrets { get; private set; } = new(
         System.IO.Path.Combine(AppSettings.SettingsDirectory, "secrets"));
 
+    /// <summary>Downloaded + verified update packages. Local (not roaming) data, under %LOCALAPPDATA%\Kurobane\updates.</summary>
+    public static string UpdateWorkDir { get; } =
+        Environment.GetEnvironmentVariable("KUROBANE_DATA_DIR") is { Length: > 0 } d
+            ? Path.Combine(d, "updates")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Kurobane", "updates");
+
+    public const string UpdateRepo = "BookahCoding/Kurobane";
+
     protected override void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
-        Settings = AppSettings.Load();
-        ApplyAppearance();
-    }
-
-    public static void ApplyAppearance()
-    {
-        var dark = Settings.Appearance?.Trim().ToLowerInvariant() switch
+        if (e.Args.Contains("--apply-update"))
         {
-            "light" => false,
-            "dark" => true,
-            _ => IsSystemDark(),
-        };
-        var dict = (ResourceDictionary)Current.Resources.MergedDictionaries[0];
-        dict["BackgroundBrush"] = dark ? (System.Windows.Media.Brush)new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x14, 0x14, 0x18)) : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF5, 0xF3, 0xEE));
-        dict["PanelBrush"] = dark ? (System.Windows.Media.Brush)new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1D, 0x1D, 0x23)) : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xFF, 0xFA));
-        dict["TextBrush"] = dark ? (System.Windows.Media.Brush)new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xE8, 0xE6, 0xE3)) : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x21, 0x20, 0x1C));
-        dict["MutedTextBrush"] = dark ? (System.Windows.Media.Brush)new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x9A, 0x97, 0x92)) : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x6B, 0x67, 0x60));
-        dict["AccentBrush"] = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xC8, 0x3A, 0x2E)); // kurobane red
-        dict["BorderBrush"] = dark ? (System.Windows.Media.Brush)new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x33, 0x33, 0x3B)) : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xDD, 0xD8, 0xCE));
+            UpdateLauncher.RunApplyMode(e.Args);
+            Shutdown();
+            return;
+        }
+        Settings = AppSettings.Load();
+        ThemeService.Apply(Settings.ThemeId, Settings.AppearanceMode);
+        UpdateLauncher.CleanStaleWork(UpdateWorkDir);
+        new MainWindow().Show();
+        if (Settings.CheckUpdatesOnStart)
+            _ = CheckForUpdatesAtStartupAsync();
     }
 
-    private static bool IsSystemDark()
+    public static void ApplyAppearance() => ThemeService.Apply(Settings.ThemeId, Settings.AppearanceMode);
+
+    private static async Task CheckForUpdatesAtStartupAsync()
     {
         try
         {
-            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-            return key?.GetValue("AppsUseLightTheme") is int v && v == 0;
+            await Task.Delay(StartupUpdateCheck.Delay);
+            var checker = new UpdateChecker(new HttpClientHandler(), UpdateRepo, UpdateLauncher.CurrentVersion);
+            var release = await StartupUpdateCheck.FindNewerAsync(checker.CheckAsync, CancellationToken.None);
+            if (release is not null && Current.MainWindow is MainWindow mw)
+                mw.Dispatcher.BeginInvoke(() => mw.ShowUpdateBanner(release));
         }
-        catch { return true; }
+        catch { /* silent at start-up by design */ }
     }
 }

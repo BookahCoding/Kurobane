@@ -8,6 +8,7 @@ public partial class SettingsWindow : Window
 {
     private readonly AppSettings _settings;
     private readonly ISecretStore _secrets;
+    private readonly UpdateFlow _updates;
 
     public SettingsWindow(AppSettings settings, ISecretStore secrets)
     {
@@ -18,8 +19,75 @@ public partial class SettingsWindow : Window
         NameBox.Text = server.Name;
         UrlBox.Text = server.BaseUrl;
         AgentBox.Text = string.IsNullOrWhiteSpace(server.AgentAlias) ? "default" : server.AgentAlias;
+        ThemeBox.ItemsSource = ThemeCatalog.All;
+        ThemeBox.SelectedItem = ThemeCatalog.Get(settings.ThemeId);
         SelectByTag(AppearanceBox, settings.Appearance);
         SelectByTag(ScaleBox, settings.TextScalePercent.ToString());
+        UpdateOnStartBox.IsChecked = settings.CheckUpdatesOnStart;
+
+        var verifier = new ReleaseSignatureVerifier(UpdateTrust.PublisherPublicKeySpkiBase64);
+        var checker = new UpdateChecker(new HttpClientHandler(), App.UpdateRepo, UpdateLauncher.CurrentVersion);
+        var installer = new UpdateInstaller(new HttpClientHandler(), verifier, App.UpdateWorkDir);
+        _updates = new UpdateFlow(ct => checker.CheckAsync(ct), installer.PrepareAsync, verifier.IsConfigured);
+        _updates.Changed += () => Dispatcher.BeginInvoke(RefreshUpdateUi);
+        RefreshUpdateUi();
+    }
+
+    private void RefreshUpdateUi()
+    {
+        var cur = UpdateLauncher.CurrentVersion;
+        UpdateCurrent.Text = cur == default ? "Current version: unknown" : $"Current version: {cur}";
+        UpdateCheck.IsEnabled = _updates.CanCheck;
+        UpdateDownload.IsEnabled = _updates.CanDownload;
+        UpdateInstall.IsEnabled = _updates.CanInstall;
+        UpdatePage.IsEnabled = _updates.Release is not null;
+        UpdateStatus.Text = _updates.Message;
+    }
+
+    private async void OnUpdateCheck(object sender, RoutedEventArgs e)
+    {
+        UpdateCheck.IsEnabled = false;
+        await _updates.CheckAsync(default);
+        RefreshUpdateUi();
+    }
+
+    private async void OnUpdateDownload(object sender, RoutedEventArgs e)
+    {
+        UpdateDownload.IsEnabled = false;
+        var progress = new Progress<long>(_ => { });
+        await _updates.PrepareAsync(progress, default);
+        RefreshUpdateUi();
+    }
+
+    private void OnUpdateInstall(object sender, RoutedEventArgs e)
+    {
+        if (_updates.Staged is not { } staged) return;
+        if (!UpdateLauncher.InstallDirWritable())
+        {
+            MessageBox.Show(this,
+                "The install folder is not writable by your account (for example under Program Files). " +
+                "Run the newer installer from the release page instead.", "Cannot update in place",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        if (MessageBox.Show(this, $"Install Kurobane {staged.Version} now and restart?", "Install update",
+                MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
+        {
+            _updates.Discard();
+            RefreshUpdateUi();
+            return;
+        }
+        UpdateLauncher.StartHelper(staged);
+        Application.Current.Shutdown();
+    }
+
+    private void OnUpdatePage(object sender, RoutedEventArgs e)
+    {
+        if (_updates.Release is { } release)
+        {
+            try { UpdateLauncher.OpenReleasePage(release); }
+            catch (Exception ex) { UpdateStatus.Text = ex.Message; }
+        }
     }
 
     private static void SelectByTag(ComboBox box, string? tag)
@@ -87,8 +155,10 @@ public partial class SettingsWindow : Window
             _settings.Servers.Add(server);
             _settings.ActiveServerId = server.TokenKey;
         }
-        _settings.Appearance = (AppearanceBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "dark";
+        _settings.ThemeId = (ThemeBox.SelectedItem as ThemeDefinition)?.Id ?? "washi-ink";
+        _settings.Appearance = (AppearanceBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "system";
         _settings.TextScalePercent = int.TryParse((ScaleBox.SelectedItem as ComboBoxItem)?.Tag?.ToString(), out var s) ? s : 100;
+        _settings.CheckUpdatesOnStart = UpdateOnStartBox.IsChecked == true;
         _settings.Save();
         App.ApplyAppearance();
         DialogResult = true;

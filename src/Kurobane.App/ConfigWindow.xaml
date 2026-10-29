@@ -31,7 +31,7 @@
         <TextBox x:Name="ConfigBox" Grid.Row="2" Margin="0,22,0,0" FontFamily="Consolas" FontSize="12"
                  AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <TextBlock x:Name="ConfigStatus" Foreground="{DynamicResource MutedTextBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+            <TextBlock x:Name="ConfigStatus" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="0,0,12,0"/>
             <Button x:Name="ReloadButton" Content="Reload" Click="OnReload" Margin="0,0,8,0"/>
             <Button x:Name="ApplyButton" Content="Save one property…" Style="{StaticResource AccentButton}" Click="OnApply" Width="150"/>
         </StackPanel>

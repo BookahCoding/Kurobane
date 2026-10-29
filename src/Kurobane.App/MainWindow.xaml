@@ -4,13 +4,21 @@
         Title="Kurobane — ZeroClaw client" Height="720" Width="1080"
         WindowStartupLocation="CenterScreen">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Button x:Name="UpdateBanner" Grid.Row="0" Visibility="Collapsed" Click="OnOpenSettings"
+                Background="{DynamicResource Brush.Accent}" Foreground="White" BorderThickness="0"
+                Padding="10,6" HorizontalContentAlignment="Center"/>
+        <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Sidebar -->
-        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Background="{DynamicResource Brush.SurfaceSidebar}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -19,15 +27,15 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="KUROBANE" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource AccentBrush}"/>
-                <TextBlock x:Name="ServerLabel" Grid.Row="1" Foreground="{DynamicResource MutedTextBrush}" Margin="0,2,0,8" TextWrapping="Wrap"/>
+                <TextBlock Text="KUROBANE" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource Brush.Accent}"/>
+                <TextBlock x:Name="ServerLabel" Grid.Row="1" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,8" TextWrapping="Wrap"/>
                 <Button x:Name="NewChatButton" Grid.Row="2" Content="+ New chat" Style="{StaticResource AccentButton}" Click="OnNewChat" Margin="0,0,0,8"/>
                 <ListBox x:Name="SessionList" Grid.Row="3" SelectionChanged="OnSessionSelected" MouseDoubleClick="OnSessionDoubleClick">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
                                 <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
-                                <TextBlock Foreground="{DynamicResource MutedTextBrush}" FontSize="11">
+                                <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="11">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0} messages · {1:g}">
                                             <Binding Path="MessageCount"/>
@@ -59,12 +67,12 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock x:Name="ChatTitle" Text="No session selected" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
-            <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6">
+            <Border Grid.Row="1" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="6">
                 <ScrollViewer x:Name="ChatScroll" VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="MessagesPanel" Margin="10"/>
                 </ScrollViewer>
             </Border>
-            <TextBlock x:Name="RunStatus" Grid.Row="2" Foreground="{DynamicResource MutedTextBrush}" Margin="0,4,0,4" Text=""/>
+            <TextBlock x:Name="RunStatus" Grid.Row="2" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,4,0,4" Text=""/>
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -75,6 +83,7 @@
                 <Button x:Name="SendButton" Grid.Column="1" Content="Send" Style="{StaticResource AccentButton}"
                         Click="OnSend" Margin="8,0,0,0" Width="90" VerticalAlignment="Bottom"/>
             </Grid>
+        </Grid>
         </Grid>
     </Grid>
 </Window>

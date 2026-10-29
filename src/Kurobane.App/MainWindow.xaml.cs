@@ -20,6 +20,12 @@ public partial class MainWindow : Window
         Loaded += async (_, _) => await RefreshSessionsAsync();
     }
 
+    public void ShowUpdateBanner(UpdateRelease release)
+    {
+        UpdateBanner.Content = $"Update to Kurobane {release.Version} is available — open Settings → Updates";
+        UpdateBanner.Visibility = Visibility.Visible;
+    }
+
     private KurobaneConnection? Server => App.Settings.ActiveServer;
 
     private ZeroClawClient? Client => Server is { } s && s.IsConfigured ? s.CreateClient(App.Secrets) : null;
@@ -190,7 +196,7 @@ public partial class MainWindow : Window
         {
             Text = role switch { "user" => "You", "assistant" => "ZeroClaw", "tool" => "Tool", "approval" => "Approval", "error" => "Error", _ => "System" },
             FontWeight = FontWeights.SemiBold,
-            Foreground = role switch { "user" => (Brush)FindResource("TextBrush"), "assistant" => (Brush)FindResource("AccentBrush"), "error" => Brushes.IndianRed, _ => (Brush)FindResource("MutedTextBrush") },
+            Foreground = role switch { "user" => (Brush)FindResource("Brush.Text"), "assistant" => (Brush)FindResource("Brush.Accent"), "error" => (Brush)FindResource("Brush.Danger"), _ => (Brush)FindResource("Brush.TextMuted") },
             Margin = new Thickness(0, 8, 0, 0),
         };
         var body = new StackPanel();
@@ -226,7 +232,7 @@ internal static class PromptDialog
         var w = new Window
         {
             Title = title, Width = 380, Height = 150, WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Owner = owner, ResizeMode = ResizeMode.NoResize, Background = (Brush)Application.Current.FindResource("BackgroundBrush"),
+            Owner = owner, ResizeMode = ResizeMode.NoResize, Background = (Brush)Application.Current.FindResource("Brush.Bg"),
         };
         var grid = new Grid { Margin = new Thickness(12) };
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -236,7 +242,7 @@ internal static class PromptDialog
         var ok = new Button { Content = "OK", IsDefault = true, Width = 80 };
         var panel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
         panel.Children.Add(ok);
-        var caption = new TextBlock { Text = label, Foreground = (Brush)Application.Current.FindResource("MutedTextBrush") };
+        var caption = new TextBlock { Text = label, Foreground = (Brush)Application.Current.FindResource("Brush.TextMuted") };
         Grid.SetRow(caption, 0); Grid.SetRow(tb, 1); Grid.SetRow(panel, 2);
         grid.Children.Add(caption); grid.Children.Add(tb); grid.Children.Add(panel);
         w.Content = grid;

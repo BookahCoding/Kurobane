@@ -1,0 +1,7 @@
+- First public release of Kurobane, a Windows desktop client for your ZeroClaw gateway.
+- Chat over the gateway WebSocket with streaming replies, live tool calls, and approval prompts.
+- Sessions: list, open, rename, delete, abort a running turn.
+- Gateway config viewer and single-property editor (secrets stay masked).
+- Pairing-code sign-in; the token is stored DPAPI-encrypted on your PC.
+- Eight Hokusai-inspired themes with light, dark and system appearance, plus larger text sizes.
+- In-app updates: this release ships the updater; once the publisher key is embedded, "Download and verify" and "Install and restart" become available from Settings.

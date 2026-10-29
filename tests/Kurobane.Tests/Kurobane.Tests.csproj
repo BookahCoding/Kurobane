@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kurobane.Core\Kurobane.Core.csproj" />
+    <ProjectReference Include="..\..\tools\Kurobane.ReleaseTool\Kurobane.ReleaseTool.csproj" />
   </ItemGroup>
 </Project>

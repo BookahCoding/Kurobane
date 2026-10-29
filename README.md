@@ -17,7 +17,9 @@ It is an independent, community-built client, inspired by [Hikyaku](https://gith
   with `PUT /api/config/prop?path=…` (the gateway masks secrets; the app refuses to write the masked placeholder back).
 - **Pairing**: exchange a pairing code for a bearer token (`POST /api/pair`); the token is stored on your PC
   encrypted with Windows DPAPI, never in plain settings.
-- Dark/light/system appearance, three text sizes.
+- **Eight Hokusai-inspired themes** (Washi & Ink, Great Wave, Red Fuji, Pine & Mist, Chrysanthemums, Peonies,
+  Kirifuri Falls, Thunderstorm), each with light and dark variants plus a system option, three text sizes, and
+  respect for Windows reduced-motion and high-contrast settings — the same theme system as Hikyaku.
 
 ## Requirements
 
@@ -28,13 +30,27 @@ It is an independent, community-built client, inspired by [Hikyaku](https://gith
 
 ## Install and connect
 
-1. Download the latest `Kurobane-win-x64.zip` from the [releases](https://github.com/BookahCoding/Kurobane/releases),
-   unzip anywhere your account can write, and run `Kurobane.exe`. No .NET installation is needed for the published zip.
+1. Download `Kurobane-Setup-X.Y.Z.exe` from the [latest release](https://github.com/BookahCoding/Kurobane/releases/latest)
+   and run it. It installs for **your Windows account only**, without administrator rights, into
+   `%LOCALAPPDATA%\Programs\Kurobane` (a location the in-app updater can write to), and adds Kurobane to the Start
+   menu. Windows SmartScreen may warn that the app is unrecognised because the installer is not Authenticode-signed;
+   choose **More info → Run anyway** if you trust this download.
+2. Prefer no installer? `Kurobane-win-x64.zip` on the same page is the same self-contained build: unzip it into a
+   folder your own account can write to and run `Kurobane.exe`. No .NET installation is needed.
 2. Open **Settings…**, enter a name and your gateway address (e.g. `http://100.64.0.2:42617` over Tailscale).
 3. Get a pairing code on the server (`zeroclaw gateway pair`, or the dashboard's pairing page), paste it into
    **Pairing code**, and press **Pair and test connection**.
 4. Pick the **agent alias** the chats should run as (every ZeroClaw WebSocket session is bound to one agent), save,
    and start chatting.
+
+## Updates
+
+When a newer version is out, an **Update to x.y.z** banner appears at the top of the window after start-up. It opens
+Settings → Updates: **Download and verify** → **Install and restart** (asked again before the app closes). You can also
+press **Check for updates** there at any time. Each release zip comes with a detached ECDSA P-256 signature verified
+against a public key compiled into the app, covering the zip's SHA-256, the version and the platform; a tampered or
+older package is refused, and downloads only come from GitHub over HTTPS. Nothing is downloaded or installed without
+your click. Details: [docs/UPDATES.md](docs/UPDATES.md); cutting a release: [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Security and privacy
 
