@@ -25,7 +25,7 @@ public class ConfigApiTests
     [Fact]
     public async Task SetPropPutsPathAndValue()
     {
-        var handler = new StubHandler(_ => Json("""{"path":"gateway.port","value":"42617","warnings":[]}"""));
+        var handler = new StubHandler(_ => Json("{\"path\":\"gateway.port\",\"value\":\"42617\",\"warnings\":[]}"));
         using var client = new ZeroClawClient(new Uri("http://gw.local/"), handler);
         var resp = await ConfigApi.SetPropAsync(client, "gateway.port", JsonValue.Create(42617), default);
         Assert.Equal("42617", resp["value"]!.GetValue<string>());
@@ -39,7 +39,7 @@ public class ConfigApiTests
     [Fact]
     public async Task GetPropEncodesPathInQuery()
     {
-        var handler = new StubHandler(_ => Json("""{"path":"agents.default.enabled","value":"true","warnings":[]}"""));
+        var handler = new StubHandler(_ => Json("{\"path\":\"agents.default.enabled\",\"value\":\"true\",\"warnings\":[]}"));
         using var client = new ZeroClawClient(new Uri("http://gw.local/"), handler);
         await ConfigApi.GetPropAsync(client, "agents.default.enabled", default);
         Assert.Contains("/api/config/prop?path=agents.default.enabled", handler.Calls[0].Uri);
@@ -48,10 +48,7 @@ public class ConfigApiTests
     [Fact]
     public async Task AgentsAreReadFromConfigMap()
     {
-        var handler = new StubHandler(_ => Json("""{"agents":{
-            "default":{"enabled":true,"channels":["telegram.bot"],"model_provider":"zai.main"},
-            "coder":{"enabled":false,"channels":[],"model_provider":""}
-        }}"""));
+        var handler = new StubHandler(_ => Json("{\"agents\":{\n            \"default\":{\"enabled\":true,\"channels\":[\"telegram.bot\"],\"model_provider\":\"zai.main\"},\n            \"coder\":{\"enabled\":false,\"channels\":[],\"model_provider\":\"\"}\n        }}"));
         using var client = new ZeroClawClient(new Uri("http://gw.local/"), handler);
         var agents = await AgentsApi.ListAsync(client, default);
         Assert.Equal(2, agents.Count);

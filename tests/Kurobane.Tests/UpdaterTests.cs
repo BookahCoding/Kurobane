@@ -44,13 +44,9 @@ public sealed class UpdaterTests : IDisposable
         zipUrl ??= $"https://github.com/{Repo}/releases/download/{tag}/Kurobane-win-x64.zip";
         sigUrl ??= zipUrl + ".sig";
         var sig = withSig
-            ? $$""",{"name":"Kurobane-win-x64.zip.sig","browser_download_url":"{{sigUrl}}","size":96}"""
+            ? $",{{\"name\":\"Kurobane-win-x64.zip.sig\",\"browser_download_url\":\"{sigUrl}\",\"size\":96}}"
             : "";
-        return $$"""
-        {"tag_name":"{{tag}}","draft":false,"prerelease":{{(prerelease ? "true" : "false")}},"body":{{System.Text.Json.JsonSerializer.Serialize(body)}},
-         "html_url":"https://github.com/{{Repo}}/releases/tag/{{tag}}",
-         "assets":[{"name":"Kurobane-win-x64.zip","browser_download_url":"{{zipUrl}}","size":{{size}}}{{sig}}]}
-        """;
+        return $"{{\"tag_name\":\"{tag}\",\"draft\":false,\"prerelease\":{(prerelease ? "true" : "false")},\"body\":{System.Text.Json.JsonSerializer.Serialize(body)},\"html_url\":\"https://github.com/{Repo}/releases/tag/{tag}\",\"assets\":[{{\"name\":\"Kurobane-win-x64.zip\",\"browser_download_url\":\"{zipUrl}\",\"size\":{size}}}{sig}]}}";
     }
 
     private static UpdateChecker Checker(Func<HttpRequestMessage, HttpResponseMessage> impl, ReleaseVersion? cur = null, Stub? stub = null) =>

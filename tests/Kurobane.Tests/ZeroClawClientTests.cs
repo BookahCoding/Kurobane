@@ -31,7 +31,7 @@ public class ZeroClawClientTests
     [Fact]
     public async Task RequestsCarryBearerTokenOnceSet()
     {
-        var handler = new StubHandler(_ => Json("""{"health":{"status":"ok"}}"""));
+        var handler = new StubHandler(_ => Json("{\"health\":{\"status\":\"ok\"}}"));
         using var client = new ZeroClawClient(new Uri("http://gw.local:42617/"), handler);
         client.SetToken("tok-1");
         var resp = await client.GetAsync("/api/health", default);
@@ -50,7 +50,7 @@ public class ZeroClawClientTests
             if (req.RequestUri!.AbsolutePath == "/api/pair")
             {
                 seenBody = req.Content!.ReadAsStringAsync().Result;
-                return Json("""{"paired":true,"persisted":true,"token":"tok-xyz"}""");
+                return Json("{\"paired\":true,\"persisted\":true,\"token\":\"tok-xyz\"}");
             }
             return Json("{}", HttpStatusCode.NotFound);
         });
@@ -65,7 +65,7 @@ public class ZeroClawClientTests
     [Fact]
     public async Task PairThrowsPairExceptionOnWrongCode()
     {
-        var handler = new StubHandler(_ => Json("""{"paired":false,"error":"Invalid or expired pairing code"}""", HttpStatusCode.BadRequest));
+        var handler = new StubHandler(_ => Json("{\"paired\":false,\"error\":\"Invalid or expired pairing code\"}", HttpStatusCode.BadRequest));
         using var client = new ZeroClawClient(new Uri("http://gw.local:42617/"), handler);
         var ex = await Assert.ThrowsAsync<ZeroClawPairException>(() => client.PairAsync("000000", "dev", default));
         Assert.Contains("Invalid or expired", ex.Message);
@@ -75,7 +75,7 @@ public class ZeroClawClientTests
     [Fact]
     public async Task NonSuccessStatusThrowsApiExceptionWithBody()
     {
-        var handler = new StubHandler(_ => Json("""{"error":"Unauthorized"}""", HttpStatusCode.Unauthorized));
+        var handler = new StubHandler(_ => Json("{\"error\":\"Unauthorized\"}", HttpStatusCode.Unauthorized));
         using var client = new ZeroClawClient(new Uri("http://gw.local:42617/"), handler);
         var ex = await Assert.ThrowsAsync<ZeroClawApiException>(() => client.GetAsync("/api/status", default));
         Assert.Equal(HttpStatusCode.Unauthorized, ex.StatusCode);

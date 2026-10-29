@@ -23,10 +23,7 @@ public class SessionsApiTests
     [Fact]
     public async Task ListParsesSessionEntries()
     {
-        var handler = new StubHandler(_ => Json("""{"sessions":[
-            {"session_id":"abc","session_key":"gw_abc","created_at":"2026-01-01T10:00:00Z","last_activity":"2026-01-02T11:30:00Z","message_count":7,"agent_alias":"default","channel_id":null,"name":"Morning chat"},
-            {"session_id":"def","session_key":"gw_def","created_at":"2026-01-03T09:00:00Z","last_activity":"2026-01-03T09:05:00Z","message_count":2,"agent_alias":"coder","channel_id":"telegram.bot"}
-        ]}"""));
+        var handler = new StubHandler(_ => Json("{\"sessions\":[\n            {\"session_id\":\"abc\",\"session_key\":\"gw_abc\",\"created_at\":\"2026-01-01T10:00:00Z\",\"last_activity\":\"2026-01-02T11:30:00Z\",\"message_count\":7,\"agent_alias\":\"default\",\"channel_id\":null,\"name\":\"Morning chat\"},\n            {\"session_id\":\"def\",\"session_key\":\"gw_def\",\"created_at\":\"2026-01-03T09:00:00Z\",\"last_activity\":\"2026-01-03T09:05:00Z\",\"message_count\":2,\"agent_alias\":\"coder\",\"channel_id\":\"telegram.bot\"}\n        ]}"));
         using var client = new ZeroClawClient(new Uri("http://gw.local/"), handler);
         var sessions = await SessionsApi.ListAsync(client, default);
         Assert.Equal(2, sessions.Count);
@@ -43,10 +40,7 @@ public class SessionsApiTests
     [Fact]
     public async Task MessagesParsesTranscript()
     {
-        var handler = new StubHandler(_ => Json("""{"session_id":"abc","messages":[
-            {"role":"user","content":"hi","created_at":"2026-01-01T10:00:00Z"},
-            {"role":"assistant","content":"hello!","created_at":"2026-01-01T10:00:05Z"}
-        ],"session_persistence":true}"""));
+        var handler = new StubHandler(_ => Json("{\"session_id\":\"abc\",\"messages\":[\n            {\"role\":\"user\",\"content\":\"hi\",\"created_at\":\"2026-01-01T10:00:00Z\"},\n            {\"role\":\"assistant\",\"content\":\"hello!\",\"created_at\":\"2026-01-01T10:00:05Z\"}\n        ],\"session_persistence\":true}"));
         using var client = new ZeroClawClient(new Uri("http://gw.local/"), handler);
         var msgs = await SessionsApi.MessagesAsync(client, "abc", default);
         Assert.Equal(2, msgs.Count);
