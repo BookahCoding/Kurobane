@@ -28,13 +28,13 @@
                                 <Path Fill="#F4EDD9" Data="M20,14h8a5,5 0,0 1,5 5a5,5 0,0 1,-5 5h-8a5,5 0,0 1,-5 -5a5,5 0,0 1,5 -5z M22,26l16,22h-8l-13,-18z M38,26l-14,19h-8l14,-19z"/>
                             </Viewbox>
                         </Border>
-                        <TextBlock Text="Kurobane" FontSize="{StaticResource Size.Heading}" FontWeight="SemiBold"
+                        <TextBlock Text="Kurobane" FontSize="16" FontWeight="SemiBold"
                                    Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>
 
                 <StackPanel DockPanel.Dock="Top" Margin="4,0,4,4">
-                    <TextBlock x:Name="ServerLabel" Foreground="{DynamicResource Brush.TextMuted}" FontSize="{StaticResource Size.Caption}"
+                    <TextBlock x:Name="ServerLabel" Foreground="{DynamicResource Brush.TextMuted}" FontSize="12"
                                Margin="6,0,6,8" TextWrapping="Wrap"/>
                     <Button x:Name="NewChatButton" Style="{StaticResource AccentButton}" Click="OnNewChat"
                             Margin="0,0,0,8" HorizontalAlignment="Stretch">
@@ -74,7 +74,7 @@
                             <DataTemplate>
                                 <StackPanel>
                                     <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="{StaticResource Size.Caption}" TextTrimming="CharacterEllipsis">
+                                    <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="12" TextTrimming="CharacterEllipsis">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0} messages · {1:g}">
                                                 <Binding Path="MessageCount"/>
@@ -98,14 +98,14 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="ChatTitle" Text="No session selected" FontSize="{StaticResource Size.Heading}" FontWeight="SemiBold" Margin="0,0,0,10"/>
+            <TextBlock x:Name="ChatTitle" Text="No session selected" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
             <Border Grid.Row="1" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="1" CornerRadius="{StaticResource Radius.Large}">
                 <ScrollViewer x:Name="ChatScroll" Style="{StaticResource QuietScrollViewer}" VerticalScrollBarVisibility="Auto" Padding="6">
                     <StackPanel x:Name="MessagesPanel" Margin="8"/>
                 </ScrollViewer>
             </Border>
-            <TextBlock x:Name="RunStatus" Grid.Row="2" Foreground="{DynamicResource Brush.TextMuted}" FontSize="{StaticResource Size.Caption}"
+            <TextBlock x:Name="RunStatus" Grid.Row="2" Foreground="{DynamicResource Brush.TextMuted}" FontSize="12"
                        Margin="2,8,0,8" Text=""/>
             <Border Grid.Row="3" Background="{DynamicResource Brush.SurfaceRaised}" BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="1" CornerRadius="{StaticResource Radius.Large}" Padding="10,6">

@@ -68,11 +68,6 @@
   <FontFamily x:Key="Font.Code">pack://application:,,,/Assets/Fonts/#Geist Mono, Consolas</FontFamily>
   <CornerRadius x:Key="Radius.Control">10</CornerRadius>
   <CornerRadius x:Key="Radius.Large">14</CornerRadius>
-  <sys:Double x:Key="Size.Body">15</sys:Double>
-  <sys:Double x:Key="Size.BodySmall">13.5</sys:Double>
-  <sys:Double x:Key="Size.Caption">12</sys:Double>
-  <sys:Double x:Key="Size.Heading">16</sys:Double>
-  <sys:Double x:Key="Size.Title">22</sys:Double>
   <Duration x:Key="Duration.Theme">0:0:0.180</Duration>
   <Duration x:Key="Duration.Panel">0:0:0.180</Duration>
 </ResourceDictionary>
