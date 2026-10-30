@@ -1,10 +1,11 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly:System.Runtime">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!--
     Hikyaku Ukiyo-e tokens, ported from BookahCoding/Hikyaku (MIT) so Kurobane keeps the same
     look and feel. Layout follows the same sidebar / conversation / composer shape. ThemeService
-    swaps every Brush.* key live per theme family + light/dark.
+    swaps every Brush.* key live per theme family + light/dark. Font sizes are literals because
+    the sys:Double tokens need a System.Runtime XAML mapping this project's markup compiler
+    rejects (MC1000).
   -->
 
   <!-- Dark Ukiyo-e (default) -->
