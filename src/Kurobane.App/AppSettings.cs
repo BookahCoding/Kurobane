@@ -30,8 +30,15 @@ public sealed class AppSettings
         _ => AppearanceMode.System
     };
 
+    /// <summary>
+    /// The server in use. A tokenless entry is never preferred: pairing state is what makes a
+    /// server usable, so an unpaired duplicate cannot shadow a paired one.
+    /// </summary>
     public KurobaneConnection? ActiveServer =>
-        Servers.FirstOrDefault(s => s.TokenKey == ActiveServerId) ?? Servers.FirstOrDefault();
+        Servers.FirstOrDefault(s => s.TokenKey == ActiveServerId && s.IsConfigured)
+        ?? Servers.FirstOrDefault(s => s.IsConfigured)
+        ?? Servers.FirstOrDefault(s => s.TokenKey == ActiveServerId)
+        ?? Servers.FirstOrDefault();
 
     public static string SettingsDirectory =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Kurobane");

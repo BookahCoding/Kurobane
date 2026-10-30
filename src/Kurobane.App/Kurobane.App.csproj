@@ -11,6 +11,9 @@
     <ProjectReference Include="..\Kurobane.Core\Kurobane.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Assets\Fonts\*.ttf" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Kurobane.App.Tests" />
   </ItemGroup>
 </Project>
