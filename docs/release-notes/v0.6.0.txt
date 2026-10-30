@@ -1,0 +1,6 @@
+Kurobane 0.6.0
+
+- New look: the Hikyaku UI/UX is now Kurobane's too - same theme tokens, Inter and Geist fonts, rounded controls, quiet scrollbars, sidebar with icon rows, and a rounded composer with a round send button.
+- Fixed: opening Kurobane from a pinned taskbar shortcut no longer starts a second window. The running one comes to the front instead.
+- Fixed: the gateway no longer asks to pair again after a restart. Saving Settings could add an unpaired duplicate of your server and pick it; the paired one is always preferred now.
+- Fonts are Inter (SIL OFL) and Geist (MIT); licenses are in the docs folder.
