@@ -149,13 +149,17 @@ public partial class SettingsWindow : Window
         if (existing is not null)
         {
             existing.Name = server.Name; existing.BaseUrl = server.BaseUrl; existing.AgentAlias = server.AgentAlias;
-            _settings.ActiveServerId = existing.TokenKey;
+            if (existing.TokenKey.Length > 0) _settings.ActiveServerId = existing.TokenKey;
         }
         else if (!string.IsNullOrWhiteSpace(server.BaseUrl))
         {
             _settings.Servers.Add(server);
-            _settings.ActiveServerId = server.TokenKey;
+            // A server without a stored token is not usable yet; keep the last paired one active.
+            if (server.TokenKey.Length > 0) _settings.ActiveServerId = server.TokenKey;
         }
+        _settings.Servers.RemoveAll(s => s.TokenKey.Length == 0
+            && _settings.Servers.Any(o => o != s && o.TokenKey.Length > 0
+                && o.BaseUrl.TrimEnd('/').Equals(s.BaseUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)));
         _settings.ThemeId = (ThemeBox.SelectedItem as ThemeDefinition)?.Id ?? "washi-ink";
         _settings.Appearance = (AppearanceBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "system";
         _settings.TextScalePercent = int.TryParse((ScaleBox.SelectedItem as ComboBoxItem)?.Tag?.ToString(), out var s) ? s : 100;

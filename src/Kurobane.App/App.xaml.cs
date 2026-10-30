@@ -19,11 +19,18 @@ public partial class App : Application
 
     public const string UpdateRepo = "BookahCoding/Kurobane";
 
+    private static Mutex? _singleInstanceMutex;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         if (e.Args.Contains("--apply-update"))
         {
             UpdateLauncher.RunApplyMode(e.Args);
+            Shutdown();
+            return;
+        }
+        if (!TryAcquireSingleInstance())
+        {
             Shutdown();
             return;
         }
@@ -36,6 +43,35 @@ public partial class App : Application
     }
 
     public static void ApplyAppearance() => ThemeService.Apply(Settings.ThemeId, Settings.AppearanceMode);
+
+    /// <summary>
+    /// One Kurobane at a time: a second launch (e.g. from a pinned taskbar shortcut) brings the
+    /// running window to the front instead of opening a second one.
+    /// </summary>
+    private static bool TryAcquireSingleInstance()
+    {
+        _singleInstanceMutex = new Mutex(true, @"Local\Kurobane.SingleInstance", out var acquired);
+        if (acquired) return true;
+        ActivateExistingWindow();
+        return false;
+    }
+
+    private static void ActivateExistingWindow()
+    {
+        var existing = System.Diagnostics.Process.GetProcessesByName("Kurobane")
+            .FirstOrDefault(p => p.Id != Environment.ProcessId && p.MainWindowHandle != IntPtr.Zero);
+        if (existing is null) return;
+        ShowWindow(existing.MainWindowHandle, SW_RESTORE);
+        SetForegroundWindow(existing.MainWindowHandle);
+    }
+
+    private const int SW_RESTORE = 9;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
 
     private static async Task CheckForUpdatesAtStartupAsync()
     {
