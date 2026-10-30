@@ -3,6 +3,13 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+  <PropertyGroup>
     <AssemblyName>Kurobane</AssemblyName>
     <RootNamespace>Kurobane.App</RootNamespace>
     <ApplicationIcon>Assets\Kurobane.ico</ApplicationIcon>
@@ -11,6 +18,7 @@
     <ProjectReference Include="..\Kurobane.Core\Kurobane.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Assets\kurobane-mark.png" />
     <Resource Include="Assets\Fonts\*.ttf" />
   </ItemGroup>
   <ItemGroup>

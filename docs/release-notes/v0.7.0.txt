@@ -1,0 +1,18 @@
+Kurobane 0.7.0
+
+Everyday chat on this PC, closer to a daily driver, still only talking to the gateway you already paired.
+
+- Session search, a composer draft for each server and session (including a new chat), and a project label that stays on this PC. Labels are captioned "On this PC" and are not synced.
+- If the saved agent is not enabled and kogarashi is, Kurobane switches the saved alias on this PC to kogarashi and says so. It does not rewrite gateway config. If several agents exist and kogarashi is not the right automatic choice, Settings lists them and waits for you.
+- Needs you: approval cards in the chat (Approve, Deny, Always) and a count in the sidebar. Always is offered because the protocol has it. The caption says the server still asks on every always_ask tool, including every shell call, and that Always does not turn supervision off. A dropped socket or a stale request is not answered. One click sends once.
+- If an approval arrives while the window is not active, a tray balloon says Kurobane needs you. That balloon is a foreground notice while Kurobane is open, not reliable background delivery. There is no voice call and no mobile push.
+- Tool calls show the name and can be expanded for arguments and results. Thinking can be expanded and is hidden when empty. Assistant text stays selectable, with Copy.
+- Running, error, and cancelled stays distinct. A dropped connection does not send the message again.
+- Image attach sends the raw bytes of a PNG, JPEG, GIF, or WebP and inserts the marker the gateway returns. Anything else is explained and not uploaded. A refusal shows the gateway's error text.
+- The sidebar hides and shows with its button or Ctrl+B. Simple stays chat, sessions, and Needs you. Advanced adds this agent (its provider, model, and fallback, kept separate from the gateway process model), skills, tools, scheduled jobs, memory (truncated), usage, plugins, personality files, paired devices, and the config editor.
+- Scheduled jobs can be created, paused, resumed, or deleted, and recent runs can be listed. Each of those writes asks first. A shell job is not pre-approved. Personality files on the gateway allowlist can be edited; the write sends the mtime that was read and asks first. The config editor still sets one property at a time and refuses a masked secret. It does not change the provider or model unless you edit that property yourself.
+- Usage shows token counts. If the dollar amount is 0 and the gateway reports unpriced tokens, Kurobane says they were not priced. It does not invent a price.
+- Settings → Check for updates reads the latest stable release of BookahCoding/Kurobane. Download and install runs only after you click it, and only when the release has Kurobane-win-x64.zip and a matching Kurobane-win-x64.zip.sig. An unsigned zip built on this PC is refused by that check. The setup exe is for a first install and is not what the updater downloads.
+- Plain text for pairing expired, gateway unreachable, and provider failed.
+
+This note describes the client behavior. It is not a claim that a live gateway or a phone was tested for this release.

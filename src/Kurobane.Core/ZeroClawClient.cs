@@ -72,6 +72,30 @@ public sealed class ZeroClawClient : IDisposable
         }
     }
 
+    /// <summary>POST raw bytes (image upload). Not JSON and not a filename.</summary>
+    public async Task<JsonNode> PostRawAsync(string relativePath, byte[] body, string contentType, CancellationToken ct)
+    {
+        var path = relativePath.TrimStart('/');
+        using var req = new HttpRequestMessage(HttpMethod.Post, new Uri(_baseUri, path));
+        if (_token is { Length: > 0 } t)
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", t);
+        req.Content = new ByteArrayContent(body);
+        req.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+        var text = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        if (!resp.IsSuccessStatusCode)
+            throw new ZeroClawApiException(resp.StatusCode, text);
+        if (string.IsNullOrWhiteSpace(text)) return new JsonObject();
+        try
+        {
+            return JsonNode.Parse(text) ?? new JsonObject();
+        }
+        catch (JsonException e)
+        {
+            throw new ZeroClawApiException(resp.StatusCode, $"Non-JSON response ({(int)resp.StatusCode}): {text[..Math.Min(200, text.Length)]}", e);
+        }
+    }
+
     public Task<JsonNode> GetAsync(string path, CancellationToken ct) => SendAsync(HttpMethod.Get, path, null, ct);
     public Task<JsonNode> PostAsync(string path, JsonNode? body, CancellationToken ct) => SendAsync(HttpMethod.Post, path, body, ct);
     public Task<JsonNode> PutAsync(string path, JsonNode? body, CancellationToken ct) => SendAsync(HttpMethod.Put, path, body, ct);

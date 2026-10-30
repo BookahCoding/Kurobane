@@ -22,6 +22,10 @@ public sealed class AppSettings
     public int TextScalePercent { get; set; } = 100;
     /// <summary>One quiet, anonymous check for a newer version when the app starts (nothing is downloaded until asked).</summary>
     public bool CheckUpdatesOnStart { get; set; } = true;
+    /// <summary>simple or advanced. Advanced adds gateway management pages. Local only.</summary>
+    public string UiMode { get; set; } = "simple";
+    /// <summary>When true the session sidebar is hidden. Ctrl+B toggles it. Local only.</summary>
+    public bool SidebarCollapsed { get; set; }
 
     public AppearanceMode AppearanceMode => Appearance?.Trim().ToLowerInvariant() switch
     {
@@ -50,7 +54,7 @@ public sealed class AppSettings
         try
         {
             if (File.Exists(SettingsFilePath))
-                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(SettingsFilePath)) ?? new AppSettings();
+                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(SettingsFilePath), JsonOptions) ?? new AppSettings();
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { }
         return new AppSettings();

@@ -60,6 +60,8 @@ public sealed class ChatStream : IAsyncDisposable
     public static ChatStream Create(Uri baseUri, string? token, string agentAlias, string sessionId, string? name)
         => new(BuildWsUri(baseUri, agentAlias, sessionId, name), token);
 
+    public bool CanSend => _ws.State == WebSocketState.Open;
+
     public async Task ConnectAsync(CancellationToken ct)
     {
         _ws.Options.SetRequestHeader("Authorization", $"Bearer {_token}");
