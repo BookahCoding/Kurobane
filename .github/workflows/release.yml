@@ -1,8 +1,6 @@
-# Builds, signs, and publishes a GitHub Release the in-app updater can install.
-# The private key is the repository secret KUROBANE_RELEASE_KEY_PEM. It is written to a temp file for
-# scripts/package.ps1 and deleted afterwards. It is never printed and never committed.
-# Pushing a tag vMAJOR.MINOR.PATCH runs this. An existing tag is published with
-# Actions → Release → Run workflow, tag input vX.Y.Z. See docs/RELEASING.md.
+# Builds and publishes the Android release on a tag vMAJOR.MINOR.PATCH:
+# kurobane-android.apk (signed with the repo's ANDROID_KEYSTORE_* secrets) attached to a GitHub Release.
+# The in-app updater reads that release. Drafts and pre-releases are never offered.
 name: Release
 
 on:
@@ -25,133 +23,68 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Resolve the release tag
         id: tag
-        shell: pwsh
+        shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
           INPUT_TAG: ${{ inputs.tag }}
         run: |
-          $tag = if ($env:EVENT_NAME -eq 'workflow_dispatch') { $env:INPUT_TAG } else { $env:REF_NAME }
-          $tag = if ($null -eq $tag) { '' } else { $tag.Trim() }
-          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
-            Write-Error "Refusing to publish '$tag'. The tag must be vMAJOR.MINOR.PATCH (for example v0.5.1)."
-            exit 1
-          }
-          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_TAG=$tag" -Encoding utf8NoBOM
-          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$($tag.Substring(1))" -Encoding utf8NoBOM
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "tag=$tag" -Encoding utf8NoBOM
-          Write-Host "Release tag: $tag"
+          tag="$REF_NAME"; [ "$EVENT_NAME" = "workflow_dispatch" ] && tag="$INPUT_TAG"
+          tag="$(echo -n "$tag" | xargs)"
+          if ! echo "$tag" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Refusing to publish '$tag'. The tag must be vMAJOR.MINOR.PATCH." >&2; exit 1
+          fi
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "RELEASE_VERSION=${tag#v}" >> "$GITHUB_ENV"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout the tag
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ steps.tag.outputs.tag }}
           persist-credentials: false
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-java@v4
         with:
-          dotnet-version: 9.0.x
+          distribution: temurin
+          java-version: "17"
 
-      - name: Install Inno Setup 6
-        shell: pwsh
-        run: choco install innosetup -y --no-progress
-
-      - name: Write the signing key
-        shell: pwsh
+      - name: Write the keystore
         env:
-          KUROBANE_RELEASE_KEY_PEM: ${{ secrets.KUROBANE_RELEASE_KEY_PEM }}
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          $key = $env:KUROBANE_RELEASE_KEY_PEM
-          if ([string]::IsNullOrWhiteSpace($key)) {
-            Write-Error "Secret KUROBANE_RELEASE_KEY_PEM is missing. Add the full PEM under Settings → Secrets and variables → Actions → New repository secret. The name is KUROBANE_RELEASE_KEY_PEM. See docs/RELEASING.md. The value was not printed."
-            exit 1
-          }
-          if ($key -notmatch 'BEGIN [A-Z ]*PRIVATE KEY') {
-            Write-Error "Secret KUROBANE_RELEASE_KEY_PEM is set, but it is not a PEM private key. Paste the whole PEM, including its begin and end lines. The value was not printed."
-            exit 1
-          }
-          $key = $key.Replace("`r`n", "`n").Replace("`r", "`n")
-          if (-not $key.EndsWith("`n")) { $key += "`n" }
-          $path = Join-Path $env:RUNNER_TEMP 'kurobane-release-key.pem'
-          $utf8 = New-Object System.Text.UTF8Encoding $false
-          [System.IO.File]::WriteAllText($path, $key, $utf8)
-          Write-Host "Signing key written to a temp file. The key was not printed."
+          if [ -z "$KEYSTORE_B64" ]; then echo "Secret ANDROID_KEYSTORE_B64 is missing." >&2; exit 1; fi
+          echo "$KEYSTORE_B64" | base64 -d > keystore.jks
+          cat > keystore.properties <<EOF
+          storeFile=keystore.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+          rm -f keystore.jks.bak
 
-      - name: Package and sign
-        shell: pwsh
-        run: |
-          $key = Join-Path $env:RUNNER_TEMP 'kurobane-release-key.pem'
-          & ./scripts/package.ps1 -Version $env:RELEASE_TAG -KeyPath $key -Installer
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Verify the signature
-        shell: pwsh
-        run: |
-          $src = Get-Content -Raw 'src/Kurobane.Core/Updates/ReleaseSigning.cs'
-          if ($src -notmatch 'PublisherPublicKeySpkiBase64[\s\S]*?"([A-Za-z0-9+/=]+)"') {
-            Write-Error "Could not read UpdateTrust.PublisherPublicKeySpkiBase64."
-            exit 1
-          }
-          $pub = $Matches[1]
-          dotnet build tools/Kurobane.ReleaseTool/Kurobane.ReleaseTool.csproj -c Release -nologo
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          $tool = Join-Path (Get-Location) 'tools\Kurobane.ReleaseTool\bin\Release\net9.0\Kurobane.ReleaseTool.exe'
-          $zip = 'artifacts/release/Kurobane-win-x64.zip'
-          $sig = 'artifacts/release/Kurobane-win-x64.zip.sig'
-          & $tool verify --pub $pub --version $env:RELEASE_TAG --zip $zip --sig $sig > verify-out.txt
-          $code = $LASTEXITCODE
-          $output = Get-Content -Raw verify-out.txt
-          Remove-Item verify-out.txt -Force
-          Write-Host $output
-          if ($code -ne 0 -or $output -notmatch '(?m)^Ok\s*$') {
-            Write-Error "Signature verify failed. Expected Ok from Kurobane.ReleaseTool against the embedded public key. No release was published."
-            exit 1
-          }
+      - name: Build signed release APK
+        run: ./gradlew :androidApp:assembleRelease -PappVersion=$RELEASE_TAG -PreleasesRepo=BookahCoding/Kurobane-for-android --no-daemon
 
       - name: Publish the GitHub Release
-        shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $ver = $env:RELEASE_VERSION
-          $tag = $env:RELEASE_TAG
-          $setup = "artifacts/release/Kurobane-Setup-$ver.exe"
-          $zip = 'artifacts/release/Kurobane-win-x64.zip'
-          $sig = 'artifacts/release/Kurobane-win-x64.zip.sig'
-          foreach ($path in @($setup, $zip, $sig)) {
-            if (-not (Test-Path -LiteralPath $path)) {
-              Write-Error "Missing release file: $path"
-              exit 1
-            }
-          }
-          $notes = "docs/release-notes/$tag.txt"
-          $ghArgs = @('release', 'create', $tag, '--title', "Kurobane $ver", '--latest', $setup, $zip, $sig)
-          if (Test-Path -LiteralPath $notes) {
-            Write-Host "Using release notes $notes"
-            $ghArgs += @('--notes-file', $notes)
-          } else {
-            Write-Host "No docs/release-notes/$tag.txt. Publishing with a one-line note."
-            $ghArgs += @('--notes', "Kurobane $ver")
-          }
-          gh @ghArgs
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          apk=$(ls androidApp/build/outputs/apk/release/*.apk | head -1)
+          notes="docs/release-notes/$RELEASE_TAG.txt"
+          if [ -f "$notes" ]; then
+            gh release create "$RELEASE_TAG" --title "Kurobane for Android $RELEASE_VERSION" --latest "$apk" --notes-file "$notes"
+          else
+            gh release create "$RELEASE_TAG" --title "Kurobane for Android $RELEASE_VERSION" --latest "$apk" --notes "Kurobane for Android $RELEASE_VERSION"
+          fi
 
-      - name: Delete the signing key
+      - name: Delete the keystore
         if: always()
-        shell: pwsh
-        run: |
-          $path = Join-Path $env:RUNNER_TEMP 'kurobane-release-key.pem'
-          if (Test-Path -LiteralPath $path) {
-            Remove-Item -LiteralPath $path -Force
-          }
-          if (Test-Path -LiteralPath $path) {
-            Write-Error "The signing key file is still on disk."
-            exit 1
-          }
-          Write-Host "Signing key file removed."
+        run: rm -f keystore.jks keystore.properties
