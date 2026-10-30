@@ -46,7 +46,11 @@ public partial class ConfigWindow : Window
             MessageBox.Show(this, "Refusing to write the masked-secret placeholder back. Leave it empty to keep the current secret.", "Masked value", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-        if (MessageBox.Show(this, $"Write {path.Trim()} = {value.ToJsonString()} on the gateway?", "Confirm change",
+        var trimmed = path.Trim();
+        var modelWarning = trimmed.Contains("model", StringComparison.OrdinalIgnoreCase)
+            ? "\n\nThis path names a model or provider. Saving it changes that setting on the gateway."
+            : "";
+        if (MessageBox.Show(this, $"Write {trimmed} = {value.ToJsonString()} on the gateway?{modelWarning}", "Confirm change",
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         ApplyButton.IsEnabled = false;
         try

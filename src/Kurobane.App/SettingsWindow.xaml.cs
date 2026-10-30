@@ -25,6 +25,7 @@ public partial class SettingsWindow : Window
         SelectByTag(AppearanceBox, settings.Appearance);
         SelectByTag(ScaleBox, settings.TextScalePercent.ToString());
         UpdateOnStartBox.IsChecked = settings.CheckUpdatesOnStart;
+        Loaded += async (_, _) => await LoadAgentsAsync();
 
         var verifier = new ReleaseSignatureVerifier(UpdateTrust.PublisherPublicKeySpkiBase64);
         var checker = new UpdateChecker(new HttpClientHandler(), App.UpdateRepo, UpdateLauncher.CurrentVersion);
@@ -168,6 +169,34 @@ public partial class SettingsWindow : Window
         App.ApplyAppearance();
         DialogResult = true;
         Close();
+    }
+
+    private async Task LoadAgentsAsync()
+    {
+        try
+        {
+            var server = CurrentFromFields();
+            if (!server.IsConfigured) return;
+            using var client = server.CreateClient(_secrets);
+            if (!client.HasToken) return;
+            var agents = await AgentsApi.ListAsync(client, default);
+            if (agents.Count == 0) return;
+            var aliases = agents.Select(a => a.Enabled ? a.Alias : a.Alias + " (disabled)").ToList();
+            var current = AgentBox.Text.Trim();
+            if (current.Length > 0 && !aliases.Any(a => a == current || a == current + " (disabled)"))
+                aliases.Insert(0, current);
+            AgentList.ItemsSource = aliases;
+            AgentList.SelectedItem = aliases.FirstOrDefault(a => a == current || a == current + " (disabled)");
+            AgentList.Visibility = Visibility.Visible;
+        }
+        catch { /* the typed alias stays usable */ }
+    }
+
+    private void OnAgentPicked(object sender, SelectionChangedEventArgs e)
+    {
+        if (AgentList.SelectedItem is not string picked) return;
+        const string suffix = " (disabled)";
+        AgentBox.Text = picked.EndsWith(suffix, StringComparison.Ordinal) ? picked[..^suffix.Length] : picked;
     }
 
     private KurobaneConnection CurrentFromFields()

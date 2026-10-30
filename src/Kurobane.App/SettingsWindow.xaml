@@ -20,7 +20,8 @@
             <TextBlock Text="Gateway address — e.g. http://100.64.0.2:42617 or https://zeroclaw.tail1234.ts.net" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,2"/>
             <TextBox x:Name="UrlBox" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Agent alias (every WebSocket session is bound to one)" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,2"/>
+            <TextBlock Text="Agent alias (every WebSocket session is bound to one). Picking one here does not change the gateway." Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,2" TextWrapping="Wrap"/>
+            <ComboBox x:Name="AgentList" Margin="0,0,0,6" Visibility="Collapsed" SelectionChanged="OnAgentPicked"/>
             <TextBox x:Name="AgentBox" Margin="0,0,0,10"/>
 
             <TextBlock Text="Pairing code (shown by `zeroclaw gateway pair` or the dashboard)" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,2"/>
@@ -61,6 +62,9 @@
                 <Button x:Name="UpdatePage" Content="Open release page" Click="OnUpdatePage"/>
             </StackPanel>
             <TextBlock x:Name="UpdateStatus" TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextMuted}"/>
+
+            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,12,0,0"
+                       Text="Kurobane does not place voice calls and does not receive background or mobile push. Approval balloons only appear while the window is open."/>
         </StackPanel>
         </ScrollViewer>
 
